@@ -98,6 +98,6 @@
 **Méthode** :
 1. Le source de `/?page=recover` révèle un champ `<input type="hidden" name="mail" value="webmaster@borntosec.com">`
 2. Le serveur envoie le reset à l'adresse contenue dans ce champ sans vérification
-3. `curl -X POST "http://192.168.1.103/?page=recover" --data "mail=tonmail@test.com&Submit=Submit"` forge le champ avec une autre adresse
+3. `curl -X POST "http://192.168.1.103/?page=recover" --data "mail=monmail@test.com&Submit=Submit"` forge le champ avec une autre adresse
 
 **Fix** : L'email de destination du reset doit venir de la base de données côté serveur, jamais d'un champ formulaire client. Un champ `hidden` n'est pas une protection, il est modifiable par n'importe qui.
