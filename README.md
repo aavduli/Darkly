@@ -6,6 +6,8 @@
 | 2 | Admin Panel | d19b4823e0d5600ceed56d5e896ef328d7a2b9e7ac7e80f4fcdb9b10bcb3e7ff |
 | 3 | SQL Injection (searchimg) | 10a16d834f9b1e4068b25c4c46fe0284e99e44dceaf08098fc83925ba6310ff5 |
 | 4 | Brute Force (signin) | B3A6E43DDF8B4BBB4125E5E7D23040433827759D4DE1C04EA63907479A80A6B2 |
+| 5 | Cookie Tampering | df2eb4ba34ed059a1e3e89ff4dfc13445f104a1a52295214def1c4fb1693a5c3 |
+| 6 | Password Recovery Tampering | 1d4855f7337c0c14b6f44946872c4eb33853f40b2d54393fbe94f49f1e19bbb0 |
 
 ---
 
@@ -70,3 +72,32 @@
 5. Connexion sur `/?page=signin` avec `admin:shadow`
 
 **Fix** : Rate limiting sur les tentatives de login, mots de passe forts, ne pas stocker les passwords en MD5.
+
+---
+
+### Breach 5 - Cookie Tampering
+**Flag** : `df2eb4ba34ed059a1e3e89ff4dfc13445f104a1a52295214def1c4fb1693a5c3`
+
+**Vulnerabilité** : Authentification basée sur un cookie non signé côté client
+
+**Méthode** :
+1. En inspectant les cookies du site, on trouve un cookie avec la valeur MD5 de "false"
+2. Le site utilise ce cookie pour déterminer si l'utilisateur est admin
+3. On hash "true" en MD5 et on remplace la valeur du cookie
+4. Le site nous accorde les droits admin
+
+**Fix** : Ne jamais stocker l'état d'authentification dans un cookie côté client sans signature cryptographique (HMAC). Utiliser des sessions côté serveur avec un identifiant de session aléatoire et imprévisible.
+
+---
+
+### Breach 6 - Password Recovery Tampering
+**Flag** : `1d4855f7337c0c14b6f44946872c4eb33853f40b2d54393fbe94f49f1e19bbb0`
+
+**Vulnerabilité** : Champ hidden forgeable dans le formulaire de reset password
+
+**Méthode** :
+1. Le source de `/?page=recover` révèle un champ `<input type="hidden" name="mail" value="webmaster@borntosec.com">`
+2. Le serveur envoie le reset à l'adresse contenue dans ce champ sans vérification
+3. `curl -X POST "http://192.168.1.103/?page=recover" --data "mail=tonmail@test.com&Submit=Submit"` forge le champ avec une autre adresse
+
+**Fix** : L'email de destination du reset doit venir de la base de données côté serveur, jamais d'un champ formulaire client. Un champ `hidden` n'est pas une protection, il est modifiable par n'importe qui.
