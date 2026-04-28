@@ -8,6 +8,7 @@
 | 4 | Brute Force (signin) | B3A6E43DDF8B4BBB4125E5E7D23040433827759D4DE1C04EA63907479A80A6B2 |
 | 5 | Cookie Tampering | df2eb4ba34ed059a1e3e89ff4dfc13445f104a1a52295214def1c4fb1693a5c3 |
 | 6 | Password Recovery Tampering | 1d4855f7337c0c14b6f44946872c4eb33853f40b2d54393fbe94f49f1e19bbb0 |
+| 7 | User-Agent and Referer Check | f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188 |
 
 ---
 
@@ -101,3 +102,19 @@
 3. `curl -X POST "http://192.168.1.103/?page=recover" --data "mail=monmail@test.com&Submit=Submit"` forge le champ avec une autre adresse
 
 **Fix** : L'email de destination du reset doit venir de la base de données côté serveur, jamais d'un champ formulaire client. Un champ `hidden` n'est pas une protection, il est modifiable par n'importe qui.
+
+---
+
+### Breach 7 - User-Agent and Referer Check
+**Flag** : `f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188`
+
+**Vulnerabilité** : Contrôle d'accès basé sur le User-Agent et le Referer
+
+**Méthode** :
+1. Le dernier lien en bas de page mène vers une ressource liée aux oiseaux
+2. On récupère le lien caché derrière cette page puis on l'interroge avec `curl`
+3. La requête doit utiliser le browser `ft_bornToSec`
+4. Le serveur exige aussi que la requête vienne de `https://www.nsa.gov/`
+5. `curl -s -A "ft_bornToSec" -e "https://www.nsa.gov/" "http://192.168.64.5/index.php?page=b7e44c7a40c5f80139f0a50f3650fb2bd8d00b0d24667c4c2ca32c88e13b758f" | grep "flag"` révèle le flag
+
+**Fix** : Ne jamais baser une autorisation sur des headers facilement forgeables comme `User-Agent` ou `Referer`. Vérifier l'accès côté serveur avec une vraie authentification ou une logique d'autorisation robuste.
