@@ -10,6 +10,7 @@
 | 6 | Password Recovery Tampering | 1d4855f7337c0c14b6f44946872c4eb33853f40b2d54393fbe94f49f1e19bbb0 |
 | 7 | User-Agent and Referer Check | f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188 |
 | 8 | Survey Vote Tampering | 03a944b434d5baff05f46c4bede5792551a |
+| 9 | Redirect XSS | b9e775a0291fed784a2d9680fcfad7edd6b8cdf87648da647aaf4bba288bcab3 |
 
 ---
 
@@ -134,3 +135,18 @@
 4. Le serveur accepte la valeur et retourne le flag
 
 **Fix** : Valider strictement les valeurs côté serveur avec une liste blanche de choix autorisés. Ne jamais faire confiance à une valeur numérique envoyée par le client sans contrôle.
+
+---
+
+### Breach 9 - Redirect XSS
+**Flag** : `b9e775a0291fed784a2d9680fcfad7edd6b8cdf87648da647aaf4bba288bcab3`
+
+**Vulnerabilité** : Redirection / injection JavaScript via un paramètre `site` mal validé
+
+**Méthode** :
+1. On part du dernier lien en bas de page pour atteindre la page de redirection
+2. Une tentative de redirection vers un site externe ne fonctionne pas directement
+3. En testant `index.php?page=redirect&site=javascript::alert(1)`, on constate que la valeur est interprétée de façon dangereuse
+4. Le payload exploite le paramètre de redirection pour déclencher l'affichage du flag
+
+**Fix** : Ne jamais laisser un paramètre de redirection accepter des schémas arbitraires comme `javascript:`. Restreindre strictement les destinations à une liste blanche de domaines ou de chemins internes et valider côté serveur.
