@@ -13,6 +13,7 @@
 | 9 | Redirect XSS | b9e775a0291fed784a2d9680fcfad7edd6b8cdf87648da647aaf4bba288bcab3 |
 | 10 | File Upload | 46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8 |
 | 11 | XSS Stored (feedback) | 0fbb54bbf7d099713ca4be297e1bc7da0173d8b3c21c1811b916a3a86652724e |
+| 12 | XSS via data URI (media) | 928d819fc19405ae09921a2b71227bd9aba106f9d2d37ac412e9e5a750f1506d |
 
 ---
 
@@ -183,3 +184,19 @@
 4. Le flag apparaît directement sur la page feedback
 
 **Fix** : Échapper les caractères spéciaux avant affichage avec htmlspecialchars() en PHP. Ne jamais afficher du contenu utilisateur brut dans le HTML.
+
+---
+
+### Breach 12 - XSS via data URI (media)
+**Flag** : `928d819fc19405ae09921a2b71227bd9aba106f9d2d37ac412e9e5a750f1506d`
+
+**Vulnerabilité** : XSS via data URI - bypass de filtre URL (OWASP A03)
+
+**Méthode** :
+1. `/?page=media&src=nsa` expose un paramètre `src` injecté dans un tag `<object data="...">`
+2. Le serveur filtre `http://` et `https://` mais pas le schéma `data:`
+3. Un data URI permet d'embarquer du contenu HTML/JS directement dans l'URL sans ressource externe
+4. Payload : `data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==` (soit `<script>alert(1)</script>` en base64)
+5. `curl "http://192.168.1.103/?page=media&src=data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="` retourne le flag
+
+**Fix** : Valider le paramètre `src` avec une whitelist stricte des valeurs autorisées. Bloquer tous les schémas URI non attendus (`data:`, `javascript:`, `vbscript:`) et jamais se contenter de blacklister `http://`.
