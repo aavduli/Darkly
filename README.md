@@ -5,13 +5,14 @@
 | 1 | HiddenFiles | d5eec3ec36cf80dce44a896f961c1831a05526ec215693c8f2c39543497d4466 |
 | 2 | Admin Panel | d19b4823e0d5600ceed56d5e896ef328d7a2b9e7ac7e80f4fcdb9b10bcb3e7ff |
 | 3 | SQL Injection (searchimg) | 10a16d834f9b1e4068b25c4c46fe0284e99e44dceaf08098fc83925ba6310ff5 |
-| 4 | Brute Force (signin) | B3A6E43DDF8B4BBB4125E5E7D23040433827759D4DE1C04EA63907479A80A6B2 |
+| 4 | Brute Force (signin) | b3a6e43ddf8b4bbb4125e5e7d23040433827759d4de1c04ea63907479a80a6b2 |
 | 5 | Cookie Tampering | df2eb4ba34ed059a1e3e89ff4dfc13445f104a1a52295214def1c4fb1693a5c3 |
 | 6 | Password Recovery Tampering | 1d4855f7337c0c14b6f44946872c4eb33853f40b2d54393fbe94f49f1e19bbb0 |
 | 7 | User-Agent and Referer Check | f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188 |
 | 8 | Survey Vote Tampering | 03a944b434d5baff05f46c4bede5792551a |
 | 9 | Redirect XSS | b9e775a0291fed784a2d9680fcfad7edd6b8cdf87648da647aaf4bba288bcab3 |
-| 10 | File Upload|46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8
+| 10 | File Upload | 46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8 |
+| 11 | XSS Stored (feedback) | 0fbb54bbf7d099713ca4be297e1bc7da0173d8b3c21c1811b916a3a86652724e |
 
 ---
 
@@ -64,7 +65,7 @@
 ---
 
 ### Breach 4 - Brute Force (signin)
-**Flag** : `B3A6E43DDF8B4BBB4125E5E7D23040433827759D4DE1C04EA63907479A80A6B2`
+**Flag** : `b3a6e43ddf8b4bbb4125e5e7d23040433827759d4de1c04ea63907479a80a6b2`
 
 **Vulnerabilité** : Credentials faibles sur le formulaire de login (pas de rate limiting, mot de passe trivial)
 
@@ -160,13 +161,25 @@
 **Vulnerabilité** : Unrestricted File Upload (OWASP A04)
 
 **Méthode** :
-1. `/?page=upload` expose un formulaire d'upload qui valide uniquement le Content-Type HTTP,
-   pas le contenu réel du fichier
+1. `/?page=upload` expose un formulaire d'upload qui valide uniquement le Content-Type HTTP, pas le contenu réel du fichier
 2. Création d'un webshell PHP minimal : `echo '<?php system("id"); ?>' > shell.php`
 3. Upload en forçant le Content-Type à `image/jpeg` via curl :
    `curl -F "MAX_FILE_SIZE=100000" -F "uploaded=@shell.php;type=image/jpeg" -F "Upload=Upload" "http://192.168.1.103/?page=upload"`
 4. Le serveur accepte le fichier et retourne directement le flag
 
-**Fix** : Vérifier la vraie signature du fichier (magic bytes), pas uniquement le Content-Type.
-Stocker les fichiers uploadés hors du webroot ou avec une extension neutre pour empêcher
-leur exécution par le serveur.
+**Fix** : Vérifier la vraie signature du fichier (magic bytes), pas uniquement le Content-Type. Stocker les fichiers uploadés hors du webroot ou avec une extension neutre pour empêcher leur exécution par le serveur.
+
+---
+
+### Breach 11 - XSS Stored (feedback)
+**Flag** : `0fbb54bbf7d099713ca4be297e1bc7da0173d8b3c21c1811b916a3a86652724e`
+
+**Vulnerabilité** : XSS Stored (OWASP A03)
+
+**Méthode** :
+1. `/?page=feedback` expose un formulaire guestbook dont les entrées sont stockées en base et réaffichées sans sanitization
+2. Soumettre `<script>alert(1)</script>` dans le champ Message via le formulaire
+3. Le script est stocké en base et s'exécute pour tout visiteur de la page
+4. Le flag apparaît directement sur la page feedback
+
+**Fix** : Échapper les caractères spéciaux avant affichage avec htmlspecialchars() en PHP. Ne jamais afficher du contenu utilisateur brut dans le HTML.
