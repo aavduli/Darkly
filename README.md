@@ -152,6 +152,8 @@
 
 **Fix** : Ne jamais laisser un paramètre de redirection accepter des schémas arbitraires comme `javascript:`. Restreindre strictement les destinations à une liste blanche de domaines ou de chemins internes et valider côté serveur.
 
+---
+
 ### Breach 10 - File Upload
 **Flag** : `46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8`
 
