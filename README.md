@@ -9,6 +9,7 @@
 | 5 | Cookie Tampering | df2eb4ba34ed059a1e3e89ff4dfc13445f104a1a52295214def1c4fb1693a5c3 |
 | 6 | Password Recovery Tampering | 1d4855f7337c0c14b6f44946872c4eb33853f40b2d54393fbe94f49f1e19bbb0 |
 | 7 | User-Agent and Referer Check | f2a29020ef3132e01dd61df97fd33ec8d7fcd1388cc9601e7db691d17d4d6188 |
+| 8 | Survey Vote Tampering | 03a944b434d5baff05f46c4bede5792551a |
 
 ---
 
@@ -118,3 +119,18 @@
 5. `curl -s -A "ft_bornToSec" -e "https://www.nsa.gov/" "http://192.168.64.5/index.php?page=b7e44c7a40c5f80139f0a50f3650fb2bd8d00b0d24667c4c2ca32c88e13b758f" | grep "flag"` révèle le flag
 
 **Fix** : Ne jamais baser une autorisation sur des headers facilement forgeables comme `User-Agent` ou `Referer`. Vérifier l'accès côté serveur avec une vraie authentification ou une logique d'autorisation robuste.
+
+---
+
+### Breach 8 - Survey Vote Tampering
+**Flag** : `03a944b434d5baff05f46c4bede5792551a`
+
+**Vulnerabilité** : Vote manipulé en modifiant une valeur brute dans le formulaire
+
+**Méthode** :
+1. On accède à la page du sondage et on inspecte le formulaire de vote
+2. La valeur envoyée pour le vote est brute et bornée à des choix comme `[1, 2, ... 10]`
+3. En modifiant cette valeur à `100000`, on contourne la contrainte attendue par le client
+4. Le serveur accepte la valeur et retourne le flag
+
+**Fix** : Valider strictement les valeurs côté serveur avec une liste blanche de choix autorisés. Ne jamais faire confiance à une valeur numérique envoyée par le client sans contrôle.
