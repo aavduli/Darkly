@@ -15,7 +15,9 @@
 | 11 | XSS Stored (feedback) | 0fbb54bbf7d099713ca4be297e1bc7da0173d8b3c21c1811b916a3a86652724e |
 | 12 | XSS via data URI (media) | 928d819fc19405ae09921a2b71227bd9aba106f9d2d37ac412e9e5a750f1506d |
 | 13 | Local File Inclusion (page) | b12c4b2cb8094750ae121a676269aa9e2872d07c06e429d25a63196ec1c8c1d0 |
+| 14 | Image Search Hex SQLi | 3a0944b434d5baff05f46c4bede5792551a1464b51336080340f1a980b3e390c |
 
+3a0944b434d5baff05f46c4bede5792551a1464b51336080340f1a980b3e390c
 ---
 
 ### Breach 1 - HiddenFiles
@@ -204,6 +206,27 @@
 
 ---
 
+### Breach 14 - Image Search (Hex SQLi)
+**Flag** : `3a0944b434d5baff05f46c4bede5792551a1464b51336080340f1a980b3e390c`
+
+**Vulnerabilité** : SQL Injection sur `/?page=searchimg` avec filtrage de quotes (magic_quotes-like)
+
+**Méthode** :
+1. On commence depuis la page `?page=searchimg`, identifiée précédemment vulnérable à la SQL Injection
+2. La requête UNION SELECT montre que la requête retourne 2 colonnes, ce qui permet d'extraire données via `UNION`
+3. Le serveur échappait les apostrophes (comportement de type `magic_quotes`), empêchant l'utilisation directe de `'list_images'`
+4. Contournement : transformer le nom de la table en hex (par ex. `0x6c6973745f696d61676573` pour `list_images`) afin d'éviter les quotes et exécuter la requête
+5. On a ensuite listé les schémas via `information_schema.schemata` et découvert la base `Member_images`
+6. En ciblant explicitement `Member_images.list_images` (en hex pour bypass), on a dumpé la table et trouvé une ligne cachée "Hack me ?" contenant le hash MD5 `1928e8083cf461a51303633093573c46`
+
+**Transformation finale** :
+- Décodage MD5 → `1928e8083cf461a51303633093573c46` donne la chaîne `albatroz`
+- Mettre en lowercase (déjà en lowercase) puis appliquer SHA256 sur `albatroz` → `3a0944b434d5baff05f46c4bede5792551a1464b51336080340f1a980b3e390c`
+
+**Fix** : Utiliser des requêtes paramétrées / prepared statements. Désactiver ou corriger tout mécanisme d'échappement automatique côté application qui fausse la validation (magic_quotes). Restreindre les privilèges SQL et protéger l'accès à `information_schema` en limitant les comptes de l'application.
+
+---
+
 ### Breach 13 - Local File Inclusion (page)
 **Flag** : `b12c4b2cb8094750ae121a676269aa9e2872d07c06e429d25a63196ec1c8c1d0`
 
@@ -217,3 +240,7 @@
 5. La réponse confirme que le serveur tente de lire le fichier ciblé et retourne le flag
 
 **Fix** : Ne jamais inclure directement une valeur contrôlée par l'utilisateur. Utiliser une whitelist stricte de pages autorisées (mapping fixe), normaliser le chemin, et bloquer toute séquence de traversal (`../`) côté serveur.
+
+db_default
+users
+list_images
