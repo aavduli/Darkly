@@ -25,7 +25,7 @@
 **Vulnerabilité** : Information disclosure via robots.txt
 
 **Méthode** :
-1. nmap révèle un fichier `robots.txt` avec 2 entrées Disallow : `/whatever` et `/.hidden`
+1. `nmap --script http-robots.txt` révèle un fichier `robots.txt` avec 2 entrées Disallow : `/whatever` et `/.hidden`
 2. Le robots.txt est censé dire aux crawlers de ne pas indexer ces chemins, mais il révèle leur existence à un attaquant
 3. `wget -r -np -l 10 -e robots=off http://192.168.1.103/.hidden/` crawle récursivement le répertoire
 4. `find . -name "README" -exec grep -l "flag" {} \;` trouve le README contenant le flag parmi des centaines de faux
