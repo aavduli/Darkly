@@ -14,6 +14,7 @@
 | 10 | File Upload | 46910d9ce35b385885a9f7e2b336249d622f29b267a1771fbacf52133beddba8 |
 | 11 | XSS Stored (feedback) | 0fbb54bbf7d099713ca4be297e1bc7da0173d8b3c21c1811b916a3a86652724e |
 | 12 | XSS via data URI (media) | 928d819fc19405ae09921a2b71227bd9aba106f9d2d37ac412e9e5a750f1506d |
+| 13 | Local File Inclusion (page) | b12c4b2cb8094750ae121a676269aa9e2872d07c06e429d25a63196ec1c8c1d0 |
 
 ---
 
@@ -200,3 +201,19 @@
 5. `curl "http://192.168.1.103/?page=media&src=data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="` retourne le flag
 
 **Fix** : Valider le paramètre `src` avec une whitelist stricte des valeurs autorisées. Bloquer tous les schémas URI non attendus (`data:`, `javascript:`, `vbscript:`) et jamais se contenter de blacklister `http://`.
+
+---
+
+### Breach 13 - Local File Inclusion (page)
+**Flag** : `b12c4b2cb8094750ae121a676269aa9e2872d07c06e429d25a63196ec1c8c1d0`
+
+**Vulnerabilité** : Local File Inclusion (LFI) via path traversal sur le paramètre `page`
+
+**Méthode** :
+1. Le site charge dynamiquement des fichiers avec un paramètre d'URL du type `?page=...`
+2. Ce pattern suggère un include côté serveur insuffisamment filtré
+3. Test de traversal avec `../../` pour sortir du répertoire web et viser un fichier système lisible
+4. Requête utilisée : `http://192.168.64.5/?page=../../../../../../../../etc/passwd`
+5. La réponse confirme que le serveur tente de lire le fichier ciblé et retourne le flag
+
+**Fix** : Ne jamais inclure directement une valeur contrôlée par l'utilisateur. Utiliser une whitelist stricte de pages autorisées (mapping fixe), normaliser le chemin, et bloquer toute séquence de traversal (`../`) côté serveur.
