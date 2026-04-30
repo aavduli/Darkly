@@ -17,7 +17,6 @@
 | 13 | Local File Inclusion (page) | b12c4b2cb8094750ae121a676269aa9e2872d07c06e429d25a63196ec1c8c1d0 |
 | 14 | Image Search Hex SQLi | 3a0944b434d5baff05f46c4bede5792551a1464b51336080340f1a980b3e390c |
 
-3a0944b434d5baff05f46c4bede5792551a1464b51336080340f1a980b3e390c
 ---
 
 ### Breach 1 - HiddenFiles
