@@ -239,3 +239,9 @@
 5. La réponse confirme que le serveur tente de lire le fichier ciblé et retourne le flag
 
 **Fix** : Ne jamais inclure directement une valeur contrôlée par l'utilisateur. Utiliser une whitelist stricte de pages autorisées (mapping fixe), normaliser le chemin, et bloquer toute séquence de traversal (`../`) côté serveur.
+
+
+Online tools that we used : 
+https://crackstation.net
+CyberChef:
+https://gchq.github.io/CyberChef/#recipe=SHA2('256',1,160)MD5(/disabled)&input=YWxiYXRyb3o
